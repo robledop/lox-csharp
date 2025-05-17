@@ -103,7 +103,8 @@ public record Resolver(LoxInterpreter LoxInterpreter) : IExprVisitor<object?>, I
 
     public object? VisitVariableExpression(Variable expr)
     {
-        if (_scopes.Any() && _scopes.Peek().TryGetValue(expr.Name.Lexeme!, out var isDefined))
+        ArgumentException.ThrowIfNullOrEmpty(expr.Name.Lexeme);
+        if (_scopes.Any() && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out var isDefined))
         {
             if (!isDefined)
                 Lox.Error(expr.Name, "Can't read local variable in its own initializer.");
@@ -141,7 +142,6 @@ public record Resolver(LoxInterpreter LoxInterpreter) : IExprVisitor<object?>, I
             BeginScope();
             _scopes.Peek().Add("super", true);
         }
-
 
         BeginScope();
 
@@ -252,7 +252,7 @@ public record Resolver(LoxInterpreter LoxInterpreter) : IExprVisitor<object?>, I
     {
         // Java stores the Stack elements in reverse order compared to C#.
         // So, this is different from the book.
-        for (int i = 0; i < _scopes.Count; i++)
+        for (var i = 0; i < _scopes.Count; i++)
         {
             if (_scopes.ElementAt(i).ContainsKey(name.Lexeme!))
             {
@@ -270,18 +270,20 @@ public record Resolver(LoxInterpreter LoxInterpreter) : IExprVisitor<object?>, I
 
     void Declare(Token name)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name.Lexeme);
         if (!_scopes.Any()) return;
         var scope = _scopes.Peek();
-        if (scope.ContainsKey(name.Lexeme!))
+        if (scope.ContainsKey(name.Lexeme))
             Lox.Error(name, "Already a variable with this name in this scope.");
         else
-            scope.Add(name.Lexeme!, false);
+            scope.Add(name.Lexeme, false);
     }
 
     void Define(Token name)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name.Lexeme);
         if (!_scopes.Any()) return;
         var scope = _scopes.Peek();
-        scope[name.Lexeme!] = true;
+        scope[name.Lexeme] = true;
     }
 }

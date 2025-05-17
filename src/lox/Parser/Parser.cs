@@ -2,8 +2,42 @@ using static CSharpLox.TokenType;
 
 namespace CSharpLox.Parser;
 
+// Grammar
+
+// program        : statement* EOF ;
+// declaration    : classDecl | funDecl | varDecl | statement ;
+// classDecl      : "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
+// funDecl        : "fun" function ;
+// function       : IDENTIFIER "(" parameters? ")" block ;
+// parameters     : IDENTIFIER ( "," IDENTIFIER )* ;
+// varDecl        : "var" IDENTIFIER ( "=" expression )? ";" ;
+// statement      : exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block ;
+// returnStmt     : "return" expression? ";" ;
+// ifStmt         : "if" "(" expression ")" statement ( "else" statement )? ;
+// block          : "{" declaration* "}" ;
+// exprStmt       : expression ";" ;
+// forStmt        : "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
+// printStmt      : "print" expression ";" ;
+// whileStmt      : "while" "(" expression ")" statement ;
+// expression     : assignment ;
+// assignment     : ( call "." )? IDENTIFIER "=" assignment | logic_or ;
+// logic_or       : logic_and ( "or" logic_and )* ;
+// logic_and      : equality ( "and" equality )* ;
+// equality       : comparison ( ( "!=" | "==" ) comparison )* ;
+// comparison     : term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+// term           : factor ( ( "-" | "+" ) factor )* ;
+// factor         : unary ( ( "/" | "*" ) unary )* ;
+// unary          : ( "!" | "-" ) unary | call ;
+// call           : primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+// arguments      : expression ( "," expression )* ;
+// primary        : "true" | "false" | "nil" | "this"
+//                 | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+//                 | "super" "." IDENTIFIER ;
+
 public class Parser(List<Token> tokens)
 {
+    class ParseError(Token token, string message) : Exception($"{token}: {message}");
+
     readonly Stack<object?> _loopStack = new();
     int _current;
 
@@ -68,6 +102,9 @@ public class Parser(List<Token> tokens)
         return new ParseError(token, message);
     }
 
+    /// <summary>
+    /// Find a place to resume parsing after an error.
+    /// </summary>
     void Synchronize()
     {
         Advance();
@@ -173,6 +210,7 @@ public class Parser(List<Token> tokens)
         if (Match(LEFT_BRACE)) return new Block(Block());
         if (Match(BREAK)) return BreakStatement();
         if (Match(CONTINUE)) return ContinueStatement();
+
         return ExpressionStatement();
     }
 
@@ -181,9 +219,7 @@ public class Parser(List<Token> tokens)
     {
         var keyword = Previous();
         if (_loopStack.Count == 0)
-        {
             Error(keyword, "break statement not inside a loop.");
-        }
 
         Consume(SEMICOLON, "Expect ';' after break.");
         return new Break(keyword);
@@ -503,8 +539,4 @@ public class Parser(List<Token> tokens)
 
         throw Error(Peek(), "Expect expression.");
     }
-}
-
-public class ParseError(Token token, string message) : Exception($"{token}: {message}")
-{
 }

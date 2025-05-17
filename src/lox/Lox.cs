@@ -1,8 +1,6 @@
 using System.Globalization;
 using CSharpLox.Interpreter;
 using CSharpLox.Parser;
-using Environment = System.Environment;
-
 
 namespace CSharpLox;
 
@@ -10,7 +8,7 @@ public static class Lox
 {
     static readonly LoxInterpreter Interpreter = new();
     public static bool HadError { get; private set; }
-    public static bool HadRuntimeError { get; private set; }
+    static bool HadRuntimeError { get; set; }
 
     public static void Error(int line, int column, string message)
     {
@@ -167,7 +165,7 @@ public static class Lox
 
     public static void PrintUsage()
     {
-        Console.WriteLine("Usage: ./lox tokenize <filename>");
+        Console.WriteLine("Usage: ./lox run <filename>");
         Console.WriteLine("       ./lox repl");
     }
 

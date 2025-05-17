@@ -11,16 +11,9 @@ public class LoxEnvironment
 
     public object? Get(Token token)
     {
-        if (_values.TryGetValue(token.Lexeme!, out var value))
-        {
+        ArgumentNullException.ThrowIfNull(token.Lexeme);
+        if (_values.TryGetValue(token.Lexeme, out var value))
             return value;
-        }
-
-        // This is in the book, but is it really necessary?
-        // if (_enclosing != null)
-        // {
-        //     return _enclosing.Get(token);
-        // }
 
         throw new RuntimeError(token, $"Undefined variable '{token.Lexeme}'.");
     }
@@ -29,20 +22,11 @@ public class LoxEnvironment
 
     public void Assign(Token name, object? value)
     {
-        if (_values.ContainsKey(name.Lexeme!))
-        {
-            _values[name.Lexeme!] = value;
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(name.Lexeme);
+        if (!_values.ContainsKey(name.Lexeme))
+            throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
 
-        // This is in the book, but is it really necessary?
-        // if (_enclosing != null)
-        // {
-        //     _enclosing.Assign(name, value);
-        //     return;
-        // }
-
-        throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
+        _values[name.Lexeme!] = value;
     }
 
     public void AssignAt(int distance, Token token, object? value) => Ancestor(distance, token).Assign(token, value);
@@ -51,9 +35,7 @@ public class LoxEnvironment
     {
         var environment = this;
         for (var i = 0; i < distance; i++)
-        {
             environment = environment.Enclosing ?? throw new RuntimeError(token, "Enclosing environment not found.");
-        }
 
         return environment;
     }

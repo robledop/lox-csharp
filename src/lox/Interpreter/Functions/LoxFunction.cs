@@ -10,7 +10,8 @@ public class LoxFunction(Function declaration, LoxEnvironment closure, bool isIn
         for (var i = 0; i < declaration.Parameters.Count; i++)
         {
             var lexeme = declaration.Parameters[i].Lexeme;
-            environment.Define(lexeme!, arguments[i]);
+            ArgumentException.ThrowIfNullOrEmpty(lexeme);
+            environment.Define(lexeme, arguments[i]);
         }
 
         try
@@ -20,12 +21,12 @@ public class LoxFunction(Function declaration, LoxEnvironment closure, bool isIn
         catch (ReturnException ret)
         {
             return isInitializer
-                ? closure.GetAt(0, new Token(TokenType.THIS, "this", null, -1))
+                ? closure.GetAt(0, new Token(TokenType.THIS, "this"))
                 : ret.Value;
         }
 
         if (isInitializer)
-            return closure.GetAt(0, new Token(TokenType.THIS, "this", null, -1));
+            return closure.GetAt(0, new Token(TokenType.THIS, "this"));
 
         return null;
     }

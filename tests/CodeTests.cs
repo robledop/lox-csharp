@@ -877,6 +877,70 @@ public partial class CodeTests(ITestOutputHelper testOutput)
         TestRun(CODE, EXPECTED_OUTPUT);
     }
 
+
+    [Fact]
+    public void ReadFile()
+    {
+        /* language=Java */
+        const string CODE = """
+                            var a = read("test1.lox");
+                            print a;
+                            """;
+
+        const string EXPECTED_OUTPUT = """
+                                       var a = "Hello, world!";
+                                       print a;
+
+                                       """;
+        TestRun(CODE, EXPECTED_OUTPUT);
+    }
+
+
+    [Fact]
+    public void WriteFile()
+    {
+        /* language=Java */
+        const string CODE = """
+                            var a = "Hello, world!";
+                            write("hello.lox", a);
+                            var b = read("test1.lox");
+                            print a;
+                            """;
+
+        const string EXPECTED_OUTPUT = """
+                                       Hello, world!
+
+                                       """;
+        TestRun(CODE, EXPECTED_OUTPUT);
+    }
+
+
+    [Fact]
+    public void AppendFile()
+    {
+        /* language=Java */
+        const string CODE = """
+                            var a = "Hello, world!";
+                            write("hello.lox", a);
+                            
+                            var b = read("hello.lox");
+                            print b;
+                            
+                            append("hello.lox", a);
+                            b = read("hello.lox");
+                            
+                            print b;
+                            
+                            """;
+
+        const string EXPECTED_OUTPUT = """
+                                       Hello, world!
+                                       Hello, world!Hello, world!
+                                       
+                                       """;
+        TestRun(CODE, EXPECTED_OUTPUT);
+    }
+
     [Fact]
     public void SelfInitialization1()
     {
@@ -1076,7 +1140,7 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                             fun notAMethod() {
                               print this;
                             }
-                            
+
                             notAMethod();
                             """;
         const string EXPECTED_OUTPUT = """
@@ -1218,9 +1282,9 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                                 print "Fry until golden brown.";
                               }
                             }
-                            
+
                             class BostonCream < Doughnut {}
-                            
+
                             BostonCream().cook();
                             """;
         const string EXPECTED_OUTPUT = """
@@ -1241,7 +1305,7 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                                 print "A method";
                               }
                             }
-                            
+
                             // B inherits method `method` from A
                             // and overrides it with a new implementation
                             class B < A {
@@ -1249,7 +1313,7 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                                 print "B method";
                               }
                             }
-                            
+
                             var b = B();
                             b.method();
                             """;
@@ -1271,7 +1335,7 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                                 print "Fry until golden brown.";
                               }
                             }
-                            
+
                             // Super can be used to call the overridden method
                             // of the parent class
                             class BostonCream < Doughnut {
@@ -1279,7 +1343,7 @@ public partial class CodeTests(ITestOutputHelper testOutput)
                                 super.cook();
                               }
                             }
-                            
+
                             BostonCream().cook();
                             """;
         const string EXPECTED_OUTPUT = """

@@ -3,7 +3,7 @@ namespace CSharpLox.Interpreter.Functions;
 public class LoxClass(string name, LoxClass? superClass, Dictionary<string, LoxFunction> methods) : ICallable
 {
     public string Name { get; init; } = name;
-    public Dictionary<string, LoxFunction> Methods { get; } = methods;
+    Dictionary<string, LoxFunction> Methods { get; } = methods;
 
     public override string ToString() => Name;
 

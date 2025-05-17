@@ -22,4 +22,10 @@
       <ProjectReference Include="..\src\lox\lox.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="test1.lox">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

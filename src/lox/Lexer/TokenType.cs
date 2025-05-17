@@ -56,7 +56,8 @@ public enum TokenType
     COMMENT,
     WHITESPACE,
 
-    // Native functions
-    CLOCK,
+    READ_FILE,
+    APPEND_FILE,
+    WRITE_FILE,
 }
 

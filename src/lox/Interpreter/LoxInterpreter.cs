@@ -13,17 +13,19 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
     public LoxInterpreter()
     {
         _environment = _globals;
+        // Initialize the global environment with native functions.
         _globals.Define("clock", new Clock());
+        _globals.Define("readline", new ReadLine());
+        _globals.Define("read", new ReadFile());
+        _globals.Define("write", new WriteFile());
+        _globals.Define("append", new AppendFile());
     }
 
     public void Interpret(List<IStmt> statements)
     {
         try
         {
-            foreach (var statement in statements)
-            {
-                Execute(statement);
-            }
+            statements.ForEach(Execute);
         }
         catch (RuntimeError e)
         {
@@ -41,8 +43,7 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
         try
         {
             _environment = scopedEnvironment;
-            foreach (var statement in statements)
-                Execute(statement);
+            statements.ForEach(Execute);
         }
         finally
         {
@@ -158,9 +159,7 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
     {
         var callee = Evaluate(expr.Callee);
         if (callee is not ICallable function)
-        {
             throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
-        }
 
         var arguments = expr
             .Arguments
@@ -169,10 +168,8 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
             .ToList();
 
         if (arguments.Count != function.Arity())
-        {
             throw new RuntimeError(expr.Paren,
                 $"Expected {function.Arity()} arguments but got {arguments.Count}.");
-        }
 
         return function.Call(this, arguments);
     }
@@ -199,7 +196,7 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
 
     public object? VisitThisExpression(This expr) => LookUpVariable(expr.Keyword, expr);
 
-    public object? VisitSuperExpression(Super expr)
+    public object VisitSuperExpression(Super expr)
     {
         var distance = _locals[expr];
         var superclass = (LoxClass?)_environment.GetAt(distance, new Token(CLASS, "super", null, -1));
@@ -289,13 +286,11 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
         return null;
     }
 
-    public object? VisitReturnStatement(ReturnStmt stmt)
+    public object VisitReturnStatement(ReturnStmt stmt)
     {
         object? value = null;
         if (stmt.Value is not null)
-        {
             value = Evaluate(stmt.Value);
-        }
 
         throw new ReturnException(value);
     }
@@ -304,9 +299,7 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
     {
         object? value = null;
         if (stmt.Initializer is not null)
-        {
             value = Evaluate(stmt.Initializer);
-        }
 
         _environment.Define(stmt.Name.Lexeme!, value);
         return null;
@@ -333,11 +326,11 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
         return null;
     }
 
-    public object? VisitBreakStatement(Break stmt) =>
-        throw new BreakException();
+    public object VisitBreakStatement(Break stmt) =>
+        throw new BreakException(stmt.Keyword);
 
-    public object? VisitContinueStatement(Continue stmt) =>
-        throw new ContinueException();
+    public object VisitContinueStatement(Continue stmt) =>
+        throw new ContinueException(stmt.Keyword);
 
     object? LookUpVariable(Token name, IExpr expr)
     {
@@ -351,36 +344,28 @@ public class LoxInterpreter : IExprVisitor<object?>, IStmtVisitor<object?>
     void CheckNumberOperand(Token op, object? operand)
     {
         if (operand is not double)
-        {
             throw new RuntimeError(op, "Operand must be a number.");
-        }
     }
 
     void CheckNumberOperands(Token op, object? left, object? right)
     {
         if (left is not double || right is not double)
-        {
             throw new RuntimeError(op, "Operands must be numbers.");
-        }
     }
 
-    bool IsEqual(object? a, object? b)
-    {
-        return a switch
+    bool IsEqual(object? a, object? b) =>
+        a switch
         {
             null when b == null => true,
             null => false,
             _ => a.Equals(b)
         };
-    }
 
-    bool IsTruthy(object? value)
-    {
-        return value switch
+    bool IsTruthy(object? value) =>
+        value switch
         {
             null => false,
             bool b => b,
             _ => true
         };
-    }
 }
